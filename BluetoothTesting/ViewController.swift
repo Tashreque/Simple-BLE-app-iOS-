@@ -23,8 +23,10 @@ class ViewController: UIViewController {
     
 }
 
+// This extension deals with any CBCentralManagerDelegate protocol callback functions.
 extension ViewController: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        // Called to check if bluetooth connectivity state got updated.
         switch central.state {
         case .unknown:
             print("Central state is unknown!")
@@ -35,37 +37,52 @@ extension ViewController: CBCentralManagerDelegate {
         case .unauthorized:
             print("Central state is unauthorized!")
         case .poweredOff:
-            print("Central state is poweredOff!")
+            let alert = UIAlertController(title: "Bluetooth not turned on!", message: "Go to settings and turn on bluetooth.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         case .poweredOn:
             print("Central state is poweredOn!")
             centralManager.scanForPeripherals(withServices: nil)
         @unknown default:
-            fatalError()
+            print("Unknown state!")
         }
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        // Called when the central manager has discovered any peripheral.
+        central.stopScan()
         print(peripheral)
         somePeripheral = peripheral
-        central.stopScan()
         central.connect(somePeripheral, options: nil)
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        // Called if the central manager has connected to any peripheral.
         print("Connected to peripheral: \(peripheral)")
         peripheral.discoverServices(nil)
     }
 }
 
+// This extension deals with any CVPeripheralDelegate protocol callback functions.
 extension ViewController: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        // Called if the services of this peripheral have been discovered by the central manager.
         guard let services = peripheral.services else {
             return
         }
         
+        // Handle services.
         services.forEach { (service) in
             print(service)
         }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+        // Called if the characteristics of a certain service has been discovered.
+        
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        // Called if a characteristic of a service gets updated.
     }
 }
 
