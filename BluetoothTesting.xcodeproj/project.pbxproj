@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		895D9A4323D95CC0007CA513 /* DeviceTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895D9A4223D95CC0007CA513 /* DeviceTableViewCell.swift */; };
+		895D9A4523D95FC9007CA513 /* DeviceListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895D9A4423D95FC9007CA513 /* DeviceListViewModel.swift */; };
 		896A4CF623D5B9C100B537B0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896A4CF523D5B9C100B537B0 /* AppDelegate.swift */; };
 		896A4CF823D5B9C100B537B0 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896A4CF723D5B9C100B537B0 /* SceneDelegate.swift */; };
 		896A4CFA23D5B9C100B537B0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896A4CF923D5B9C100B537B0 /* ViewController.swift */; };
@@ -16,6 +18,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		895D9A4223D95CC0007CA513 /* DeviceTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceTableViewCell.swift; sourceTree = "<group>"; };
+		895D9A4423D95FC9007CA513 /* DeviceListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceListViewModel.swift; sourceTree = "<group>"; };
 		896A4CF223D5B9C100B537B0 /* BluetoothTesting.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BluetoothTesting.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		896A4CF523D5B9C100B537B0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		896A4CF723D5B9C100B537B0 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -59,6 +63,8 @@
 				896A4CF523D5B9C100B537B0 /* AppDelegate.swift */,
 				896A4CF723D5B9C100B537B0 /* SceneDelegate.swift */,
 				896A4CF923D5B9C100B537B0 /* ViewController.swift */,
+				895D9A4223D95CC0007CA513 /* DeviceTableViewCell.swift */,
+				895D9A4423D95FC9007CA513 /* DeviceListViewModel.swift */,
 				896A4CFB23D5B9C100B537B0 /* Main.storyboard */,
 				896A4CFE23D5B9C500B537B0 /* Assets.xcassets */,
 				896A4D0023D5B9C500B537B0 /* LaunchScreen.storyboard */,
@@ -140,7 +146,9 @@
 			files = (
 				896A4CFA23D5B9C100B537B0 /* ViewController.swift in Sources */,
 				896A4CF623D5B9C100B537B0 /* AppDelegate.swift in Sources */,
+				895D9A4523D95FC9007CA513 /* DeviceListViewModel.swift in Sources */,
 				896A4CF823D5B9C100B537B0 /* SceneDelegate.swift in Sources */,
+				895D9A4323D95CC0007CA513 /* DeviceTableViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,7 +224,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -270,7 +278,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;

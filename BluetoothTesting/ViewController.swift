@@ -9,8 +9,15 @@ class ViewController: UIViewController {
     // Bluetooth peripheral manager.
     var somePeripheral: CBPeripheral!
     
+    // Peripheral dictionary.
+    var peripheralDictionary = [UUID: Int]()
+    
+    // Discovered peripherals
+    var discoveredPeripherals = [CBPeripheral]()
+    
     //IBOutlet references.
-
+    @IBOutlet weak var devicesTableView: UITableView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -27,32 +34,51 @@ class ViewController: UIViewController {
 extension ViewController: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         // Called to check if bluetooth connectivity state got updated.
+        let handler = DeviceListViewModel.shared
+        var alertTitle = ""
+        var alertDescription = ""
+        
         switch central.state {
         case .unknown:
-            print("Central state is unknown!")
+            alertTitle = handler.getStateAlertTitle(state: .unknown)
+            alertDescription = handler.getStateAlertDescription(state: .unknown)
         case .resetting:
-            print("Central state is resetting!")
+            alertTitle = handler.getStateAlertTitle(state: .resetting)
+            alertDescription = handler.getStateAlertDescription(state: .resetting)
         case .unsupported:
-            print("Central state is unsupported!")
+            alertTitle = handler.getStateAlertTitle(state: .unsupported)
+            alertDescription = handler.getStateAlertDescription(state: .unsupported)
         case .unauthorized:
-            print("Central state is unauthorized!")
+            alertTitle = handler.getStateAlertTitle(state: .unauthorized)
+            alertDescription = handler.getStateAlertDescription(state: .unauthorized)
         case .poweredOff:
-            let alert = UIAlertController(title: "Bluetooth not turned on!", message: "Go to settings and turn on bluetooth.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            alertTitle = handler.getStateAlertTitle(state: .poweredOff)
+            alertDescription = handler.getStateAlertDescription(state: .poweredOff)
         case .poweredOn:
-            print("Central state is poweredOn!")
+            alertTitle = handler.getStateAlertTitle(state: .poweredOn)
+            alertDescription = handler.getStateAlertDescription(state: .poweredOn)
             centralManager.scanForPeripherals(withServices: nil)
         @unknown default:
             print("Unknown state!")
         }
+        
+        // Show relevant alert.
+        let alert = UIAlertController(title: alertTitle, message: alertDescription, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         // Called when the central manager has discovered any peripheral.
-        central.stopScan()
-        print(peripheral)
-        somePeripheral = peripheral
-        central.connect(somePeripheral, options: nil)
+        //central.stopScan()
+        if let _ = peripheralDictionary[peripheral.identifier] {
+            print("Already found!")
+        } else {
+            print(peripheral)
+            peripheralDictionary[peripheral.identifier] = 1
+            discoveredPeripherals.append(peripheral)
+        }
+        //central.connect(somePeripheral, options: nil)
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -84,5 +110,26 @@ extension ViewController: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         // Called if a characteristic of a service gets updated.
     }
+}
+
+// This extension handles the associated table view callback functions.
+extension ViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return discoveredPeripherals.count
+    }
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = devicesTableView.dequeueReusableCell(withIdentifier: "DeviceTableViewCell") as! DeviceTableViewCell
+        
+        cell.deviceName.text = discoveredPeripherals[indexPath.row].name
+        cell.deviceUuid.text = discoveredPeripherals[indexPath.row].identifier.uuidString
+        
+        return cell
+    }
+    
 }
 
