@@ -3,6 +3,9 @@ import CoreBluetooth
 
 class ViewController: UIViewController {
     
+    // Variables to keep track of current connected device.
+    var selectedDeviceRow = -1
+    
     // Bluetooth central manager.
     var centralManager: CBCentralManager!
     
@@ -17,11 +20,12 @@ class ViewController: UIViewController {
     }
     
     // Instance of the heart rate peripheral.
-    let heartRatePeripheral = HeartRateDevice()
+    var heartRatePeripheral = HeartRateDevice()
     
     //IBOutlet references.
     @IBOutlet weak var devicesTableView: UITableView!
-    var selectedDeviceRow = -1
+    @IBOutlet weak var heartRateLabel: UILabel!
+    @IBOutlet weak var sensorLocationLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,7 +34,9 @@ class ViewController: UIViewController {
     }
 
     @IBAction func bluetoothDidTap(_ sender: UIButton) {
-        centralManager = nil
+        discoveredPeripherals.removeAll()
+        peripheralSet.removeAll()
+        selectedDeviceRow = -1
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
     
@@ -74,7 +80,11 @@ extension ViewController: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         // Called if the central manager has connected to any peripheral.
         print("Connected to peripheral: \(peripheral)")
-        peripheral.discoverServices(nil)
+        peripheral.discoverServices([heartRatePeripheral.serviceUuid])
+    }
+    
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        print("Peripherals disconnected!")
     }
 }
 
@@ -89,16 +99,50 @@ extension ViewController: CBPeripheralDelegate {
         // Handle services.
         services.forEach { (service) in
             print(service)
+            // Discover characteristics within the required service(s).
+            peripheral.discoverCharacteristics([heartRatePeripheral.measurementUuid, heartRatePeripheral.sensorLocationUuid], for: service)
         }
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         // Called if the characteristics of a certain service has been discovered.
-        
+        guard let characteristics = service.characteristics else {
+            return
+        }
+
+        for characteristic in characteristics {
+            if characteristic.properties.contains(.read) {
+                print("Can be read!")
+                peripheral.readValue(for: characteristic)
+            }
+            if characteristic.properties.contains(.notify) {
+                peripheral.setNotifyValue(true, for: characteristic)
+                print("Can notify!")
+            }
+        }
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         // Called if a characteristic of a service gets updated.
+        let dataHandler = DeviceListViewModel.shared
+        
+        switch characteristic.uuid {
+        case heartRatePeripheral.sensorLocationUuid:
+            let sensorLocation = dataHandler.retrieveSensorLocation(from: characteristic)
+            print(sensorLocation)
+            sensorLocationLabel.text = "Sensor location: \(sensorLocation)"
+        case heartRatePeripheral.measurementUuid:
+            let heartRate = dataHandler.retrieveHeartRate(from: characteristic)
+            
+            print(heartRate)
+            heartRateLabel.text = String(heartRate)
+        default:
+            print("Unhandled characteristic for uuid: \(characteristic.uuid)")
+        }
+    }
+    
+    func peripheralDidUpdateName(_ peripheral: CBPeripheral) {
+        print("Name changed to \(String(describing: peripheral.name))")
     }
 }
 
@@ -121,8 +165,10 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         
         if indexPath.row == selectedDeviceRow {
             cell.accessoryType = .checkmark
+            cell.peripheralDisconnectButton.isHidden = false
         } else {
             cell.accessoryType = .none
+            cell.peripheralDisconnectButton.isHidden = true
         }
         
         return cell
@@ -131,9 +177,11 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let selectedPeripheral = discoveredPeripherals[indexPath.row]
+        selectedPeripheral.delegate = self
         selectedDeviceRow = indexPath.row
         
         print("Selected \(String(describing: selectedPeripheral.name))")
+        centralManager.connect(selectedPeripheral, options: nil)
         
         tableView.reloadRows(at: [indexPath], with: .fade)
     }

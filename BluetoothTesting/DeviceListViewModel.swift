@@ -7,6 +7,39 @@ class DeviceListViewModel {
     
     private init() {}
     
+    func retrieveHeartRate(from characteristic: CBCharacteristic) -> Int {
+        // Called to obtain the heart rate from the given characteristic.
+        guard let characteristicData = characteristic.value else { return -1 }
+        let byteArray = [UInt8](characteristicData)
+
+        let firstBitValue = byteArray[0] & 0x01
+        if firstBitValue == 0 {
+          // Heart Rate Value Format is in the 2nd byte
+          return Int(byteArray[1])
+        } else {
+          // Heart Rate Value Format is in the 2nd and 3rd bytes
+          return (Int(byteArray[1]) << 8) + Int(byteArray[2])
+        }
+    }
+    
+    func retrieveSensorLocation(from characteristic: CBCharacteristic) -> String {
+        // Called to retrieve the sensor position from the given characteristic.
+        guard let characteristicData = characteristic.value,
+          let byte = characteristicData.first else { return "Error" }
+
+        switch byte {
+          case 0: return "Other"
+          case 1: return "Chest"
+          case 2: return "Wrist"
+          case 3: return "Finger"
+          case 4: return "Hand"
+          case 5: return "Ear Lobe"
+          case 6: return "Foot"
+          default:
+            return "Reserved for future use"
+        }
+    }
+    
     func getStateAlertDescription(state: CBManagerState) -> String {
         switch state {
         case .unknown:

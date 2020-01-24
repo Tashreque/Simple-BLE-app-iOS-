@@ -5,6 +5,7 @@ class DeviceTableViewCell: UITableViewCell {
     //IBOutlet references.
     @IBOutlet weak var deviceName: UILabel!
     @IBOutlet weak var deviceUuid: UILabel!
+    @IBOutlet weak var peripheralDisconnectButton: UIButton!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -16,5 +17,8 @@ class DeviceTableViewCell: UITableViewCell {
 
         // Configure the view for the selected state
     }
-
+    
+    @IBAction func disconnectButtonTapped(_ sender: UIButton) {
+        // Called when the device corresponding to this cell should get disconnected.
+    }
 }
