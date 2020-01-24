@@ -15,6 +15,7 @@
 		896A4CFD23D5B9C100B537B0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 896A4CFB23D5B9C100B537B0 /* Main.storyboard */; };
 		896A4CFF23D5B9C500B537B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 896A4CFE23D5B9C500B537B0 /* Assets.xcassets */; };
 		896A4D0223D5B9C500B537B0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 896A4D0023D5B9C500B537B0 /* LaunchScreen.storyboard */; };
+		89E89C2923DAB407009417E3 /* HeartRateDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89E89C2823DAB407009417E3 /* HeartRateDevice.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		896A4CFE23D5B9C500B537B0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		896A4D0123D5B9C500B537B0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		896A4D0323D5B9C500B537B0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		89E89C2823DAB407009417E3 /* HeartRateDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateDevice.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +65,7 @@
 				896A4CF523D5B9C100B537B0 /* AppDelegate.swift */,
 				896A4CF723D5B9C100B537B0 /* SceneDelegate.swift */,
 				896A4CF923D5B9C100B537B0 /* ViewController.swift */,
+				89E89C2823DAB407009417E3 /* HeartRateDevice.swift */,
 				895D9A4223D95CC0007CA513 /* DeviceTableViewCell.swift */,
 				895D9A4423D95FC9007CA513 /* DeviceListViewModel.swift */,
 				896A4CFB23D5B9C100B537B0 /* Main.storyboard */,
@@ -146,6 +149,7 @@
 			files = (
 				896A4CFA23D5B9C100B537B0 /* ViewController.swift in Sources */,
 				896A4CF623D5B9C100B537B0 /* AppDelegate.swift in Sources */,
+				89E89C2923DAB407009417E3 /* HeartRateDevice.swift in Sources */,
 				895D9A4523D95FC9007CA513 /* DeviceListViewModel.swift in Sources */,
 				896A4CF823D5B9C100B537B0 /* SceneDelegate.swift in Sources */,
 				895D9A4323D95CC0007CA513 /* DeviceTableViewCell.swift in Sources */,

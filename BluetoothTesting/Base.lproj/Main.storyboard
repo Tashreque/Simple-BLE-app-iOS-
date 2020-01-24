@@ -17,8 +17,8 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hQx-Zm-wye">
-                                <rect key="frame" x="101" y="433" width="212" height="30"/>
-                                <state key="normal" title="Establish bluetooth connection"/>
+                                <rect key="frame" x="150.5" y="433" width="113" height="30"/>
+                                <state key="normal" title="Look for devices"/>
                                 <connections>
                                     <action selector="bluetoothDidTap:" destination="BYZ-38-t0r" eventType="touchUpInside" id="IwC-mg-n4D"/>
                                 </connections>

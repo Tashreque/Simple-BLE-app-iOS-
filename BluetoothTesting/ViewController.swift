@@ -6,17 +6,22 @@ class ViewController: UIViewController {
     // Bluetooth central manager.
     var centralManager: CBCentralManager!
     
-    // Bluetooth peripheral manager.
-    var somePeripheral: CBPeripheral!
-    
     // Peripheral dictionary.
-    var peripheralDictionary = [UUID: Int]()
+    var peripheralSet = Set<UUID>()
     
-    // Discovered peripherals
-    var discoveredPeripherals = [CBPeripheral]()
+    // Discovered peripherals to load table view.
+    var discoveredPeripherals = [CBPeripheral]() {
+        didSet {
+            devicesTableView.reloadData()
+        }
+    }
+    
+    // Instance of the heart rate peripheral.
+    let heartRatePeripheral = HeartRateDevice()
     
     //IBOutlet references.
     @IBOutlet weak var devicesTableView: UITableView!
+    var selectedDeviceRow = -1
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +30,7 @@ class ViewController: UIViewController {
     }
 
     @IBAction func bluetoothDidTap(_ sender: UIButton) {
+        centralManager = nil
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
     
@@ -38,28 +44,13 @@ extension ViewController: CBCentralManagerDelegate {
         var alertTitle = ""
         var alertDescription = ""
         
-        switch central.state {
-        case .unknown:
-            alertTitle = handler.getStateAlertTitle(state: .unknown)
-            alertDescription = handler.getStateAlertDescription(state: .unknown)
-        case .resetting:
-            alertTitle = handler.getStateAlertTitle(state: .resetting)
-            alertDescription = handler.getStateAlertDescription(state: .resetting)
-        case .unsupported:
-            alertTitle = handler.getStateAlertTitle(state: .unsupported)
-            alertDescription = handler.getStateAlertDescription(state: .unsupported)
-        case .unauthorized:
-            alertTitle = handler.getStateAlertTitle(state: .unauthorized)
-            alertDescription = handler.getStateAlertDescription(state: .unauthorized)
-        case .poweredOff:
-            alertTitle = handler.getStateAlertTitle(state: .poweredOff)
-            alertDescription = handler.getStateAlertDescription(state: .poweredOff)
-        case .poweredOn:
-            alertTitle = handler.getStateAlertTitle(state: .poweredOn)
-            alertDescription = handler.getStateAlertDescription(state: .poweredOn)
-            centralManager.scanForPeripherals(withServices: nil)
-        @unknown default:
-            print("Unknown state!")
+        alertTitle = handler.getStateAlertTitle(state: centralManager.state)
+        alertDescription = handler.getStateAlertDescription(state: centralManager.state)
+        
+        if centralManager.state == .poweredOn {
+            print(alertTitle + " " + alertDescription)
+            centralManager.scanForPeripherals(withServices: [heartRatePeripheral.serviceUuid], options: nil)
+            return
         }
         
         // Show relevant alert.
@@ -70,15 +61,14 @@ extension ViewController: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         // Called when the central manager has discovered any peripheral.
-        //central.stopScan()
-        if let _ = peripheralDictionary[peripheral.identifier] {
+        central.stopScan()
+        if peripheralSet.contains(peripheral.identifier) {
             print("Already found!")
         } else {
             print(peripheral)
-            peripheralDictionary[peripheral.identifier] = 1
+            peripheralSet.insert(peripheral.identifier)
             discoveredPeripherals.append(peripheral)
         }
-        //central.connect(somePeripheral, options: nil)
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -124,11 +114,28 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = devicesTableView.dequeueReusableCell(withIdentifier: "DeviceTableViewCell") as! DeviceTableViewCell
+        cell.accessoryType = .checkmark
         
         cell.deviceName.text = discoveredPeripherals[indexPath.row].name
         cell.deviceUuid.text = discoveredPeripherals[indexPath.row].identifier.uuidString
         
+        if indexPath.row == selectedDeviceRow {
+            cell.accessoryType = .checkmark
+        } else {
+            cell.accessoryType = .none
+        }
+        
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let selectedPeripheral = discoveredPeripherals[indexPath.row]
+        selectedDeviceRow = indexPath.row
+        
+        print("Selected \(String(describing: selectedPeripheral.name))")
+        
+        tableView.reloadRows(at: [indexPath], with: .fade)
     }
     
 }
