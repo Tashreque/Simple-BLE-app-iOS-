@@ -1,7 +1,7 @@
 import UIKit
 import CoreBluetooth
 
-class ViewController: UIViewController {
+class DeviceListViewController: UIViewController {
     
     // Variables to keep track of current connected device.
     var selectedDeviceRow = -1
@@ -12,6 +12,9 @@ class ViewController: UIViewController {
     // Peripheral dictionary.
     var peripheralSet = Set<UUID>()
     
+    // The flag to determine whether scanning has started/stopped.
+    var isScanning = false
+    
     // Discovered peripherals to load table view.
     var discoveredPeripherals = [CBPeripheral]() {
         didSet {
@@ -20,7 +23,10 @@ class ViewController: UIViewController {
     }
     
     // Instance of the heart rate peripheral.
-    var heartRatePeripheral = HeartRateDevice()
+    var heartRatePeripheral: CBPeripheral?
+    
+    // The view model for this view controller.
+    weak var viewModel: DeviceListViewModel!
     
     //IBOutlet references.
     @IBOutlet weak var devicesTableView: UITableView!
@@ -30,57 +36,72 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        
+        viewModel = DeviceListViewModel.shared
+        centralManager = CBCentralManager(delegate: self, queue: nil)
     }
 
     @IBAction func bluetoothDidTap(_ sender: UIButton) {
-        discoveredPeripherals.removeAll()
-        peripheralSet.removeAll()
-        selectedDeviceRow = -1
-        centralManager = CBCentralManager(delegate: self, queue: nil)
+//        discoveredPeripherals.removeAll()
+//        peripheralSet.removeAll()
+//        selectedDeviceRow = -1
+        
+        // Make UI changes.
+        if !isScanning {
+            if centralManager.state == .poweredOn {
+                centralManager.scanForPeripherals(withServices: nil, options: nil)
+                isScanning = true
+                sender.backgroundColor = .systemBlue
+                sender.setTitle("Stop", for: .normal)
+            } else {
+                showBluetoothAlert()
+            }
+        } else {
+            centralManager.stopScan()
+            isScanning = false
+            sender.backgroundColor = .systemRed
+            sender.setTitle("Start", for: .normal)
+        }
     }
     
-}
-
-// This extension deals with any CBCentralManagerDelegate protocol callback functions.
-extension ViewController: CBCentralManagerDelegate {
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        // Called to check if bluetooth connectivity state got updated.
-        let handler = DeviceListViewModel.shared
+    private func showBluetoothAlert() {
+        // Show relevant alert.
         var alertTitle = ""
         var alertDescription = ""
         
-        alertTitle = handler.getStateAlertTitle(state: centralManager.state)
-        alertDescription = handler.getStateAlertDescription(state: centralManager.state)
+        alertTitle = viewModel.getStateAlertTitle(state: centralManager.state)
+        alertDescription = viewModel.getStateAlertDescription(state: centralManager.state)
         
-        if centralManager.state == .poweredOn {
-            print(alertTitle + " " + alertDescription)
-            centralManager.scanForPeripherals(withServices: [heartRatePeripheral.serviceUuid], options: nil)
-            return
-        }
-        
-        // Show relevant alert.
         let alert = UIAlertController(title: alertTitle, message: alertDescription, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         present(alert, animated: true, completion: nil)
     }
+}
+
+// This extension deals with any CBCentralManagerDelegate protocol callback functions.
+extension DeviceListViewController: CBCentralManagerDelegate {
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        // Called to check if bluetooth connectivity state got updated.
+        showBluetoothAlert()
+    }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         // Called when the central manager has discovered any peripheral.
-        central.stopScan()
+        //central.stopScan()
         if peripheralSet.contains(peripheral.identifier) {
             print("Already found!")
         } else {
-            print(peripheral)
-            peripheralSet.insert(peripheral.identifier)
-            discoveredPeripherals.append(peripheral)
+            print("Discovered \(peripheral.name ?? "") with ID: \(peripheral.identifier.uuidString)")
+            if peripheral.identifier == HeartRateDevice.deviceUuid {
+                peripheralSet.insert(peripheral.identifier)
+                discoveredPeripherals.append(peripheral)
+            }
         }
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         // Called if the central manager has connected to any peripheral.
         print("Connected to peripheral: \(peripheral)")
-        peripheral.discoverServices([heartRatePeripheral.serviceUuid])
+        peripheral.discoverServices([HeartRateDevice.serviceUuid])
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
@@ -89,7 +110,7 @@ extension ViewController: CBCentralManagerDelegate {
 }
 
 // This extension deals with any CVPeripheralDelegate protocol callback functions.
-extension ViewController: CBPeripheralDelegate {
+extension DeviceListViewController: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         // Called if the services of this peripheral have been discovered by the central manager.
         guard let services = peripheral.services else {
@@ -100,7 +121,7 @@ extension ViewController: CBPeripheralDelegate {
         services.forEach { (service) in
             print(service)
             // Discover characteristics within the required service(s).
-            peripheral.discoverCharacteristics([heartRatePeripheral.measurementUuid, heartRatePeripheral.sensorLocationUuid], for: service)
+            peripheral.discoverCharacteristics([HeartRateDevice.measurementUuid, HeartRateDevice.sensorLocationUuid], for: service)
         }
     }
     
@@ -124,16 +145,14 @@ extension ViewController: CBPeripheralDelegate {
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         // Called if a characteristic of a service gets updated.
-        let dataHandler = DeviceListViewModel.shared
         
         switch characteristic.uuid {
-        case heartRatePeripheral.sensorLocationUuid:
-            let sensorLocation = dataHandler.retrieveSensorLocation(from: characteristic)
+        case HeartRateDevice.sensorLocationUuid:
+            let sensorLocation = viewModel.retrieveSensorLocation(from: characteristic)
             print(sensorLocation)
             sensorLocationLabel.text = "Sensor location: \(sensorLocation)"
-        case heartRatePeripheral.measurementUuid:
-            let heartRate = dataHandler.retrieveHeartRate(from: characteristic)
-            
+        case HeartRateDevice.measurementUuid:
+            let heartRate = viewModel.retrieveHeartRate(from: characteristic)
             print(heartRate)
             heartRateLabel.text = String(heartRate)
         default:
@@ -147,7 +166,7 @@ extension ViewController: CBPeripheralDelegate {
 }
 
 // This extension handles the associated table view callback functions.
-extension ViewController: UITableViewDelegate, UITableViewDataSource {
+extension DeviceListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return discoveredPeripherals.count
     }
@@ -169,6 +188,15 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         } else {
             cell.accessoryType = .none
             cell.peripheralDisconnectButton.isHidden = true
+        }
+        
+        // Take action when the disconnect button is tapped.
+        cell.disconnectTappedAction = { [weak self] in
+            guard let self = self else { return }
+            self.centralManager.cancelPeripheralConnection(self.discoveredPeripherals[indexPath.row])
+            self.heartRateLabel.text = "---"
+            self.selectedDeviceRow = -1
+            tableView.reloadRows(at: [indexPath], with: .automatic)
         }
         
         return cell

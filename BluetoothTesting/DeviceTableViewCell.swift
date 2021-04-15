@@ -7,6 +7,9 @@ class DeviceTableViewCell: UITableViewCell {
     @IBOutlet weak var deviceUuid: UILabel!
     @IBOutlet weak var peripheralDisconnectButton: UIButton!
     
+    // The closure that is called when the disconnect button gets tapped.
+    var disconnectTappedAction = {}
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
@@ -20,5 +23,6 @@ class DeviceTableViewCell: UITableViewCell {
     
     @IBAction func disconnectButtonTapped(_ sender: UIButton) {
         // Called when the device corresponding to this cell should get disconnected.
+        disconnectTappedAction()
     }
 }
